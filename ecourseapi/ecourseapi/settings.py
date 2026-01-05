@@ -12,9 +12,24 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 
+import pymysql
+
+# Cài đặt pymysql thay thế MySQLdb
+pymysql.install_as_MySQLdb()
+
+# --- Thêm đoạn này để Hack phiên bản ---
+import MySQLdb
+
+# Gán phiên bản giả để qua mặt Django check
+if hasattr(MySQLdb, 'version_info'):
+    MySQLdb.version_info = (2, 2, 2, 'final', 0)
+    MySQLdb.install_as_MySQLdb()
+else:
+    # Fallback cho một số trường hợp khác
+    pass
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -27,7 +42,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -38,8 +52,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'courses.apps.CoursesConfig',
-    
+    'ckeditor',
+    'ckeditor_uploader',
+
 ]
+
+CKEDITOR_UPLOAD_PATH = "images/ckeditors/"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -68,22 +86,35 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'ecourseapi.wsgi.application'
+import cloudinary.api
 
+cloudinary.config(
+    cloud_name="dut04a4ht",
+    api_key="132394211371326",
+    api_secret="F4SN3ot9LMrGYnG88yxulbq7XHM"
+)
+
+WSGI_APPLICATION = 'ecourseapi.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'coursedb',
+        'USER': 'root',
+        'PASSWORD': 'abc123',
+        'HOST': ''  # mặc định localhost
     }
 }
 
 
+
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
+
+AUTH_USER_MODEL = "courses.User"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -100,7 +131,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
@@ -111,7 +141,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
