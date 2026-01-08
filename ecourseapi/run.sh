@@ -39,7 +39,7 @@ for i in range(1, 11):
 # ===== 3. TẠO COURSE =====
 print("📘 Creating courses...")
 courses = []
-for i in range(1, 21):
+for i in range(22, 41):
     course = Course.objects.create(
         subject=f"Course {i}",
         description=f"Description for course {i}",
@@ -52,7 +52,7 @@ for i in range(1, 21):
 
 # ===== 4. TẠO LESSON =====
 print("📚 Creating lessons...")
-for i in range(1, 31):
+for i in range(32, 61):
     Lesson.objects.create(
         subject=f"Lesson {i}",
         content=f"<p>Content for lesson {i}</p>",

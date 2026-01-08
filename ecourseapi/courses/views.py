@@ -135,6 +135,7 @@ class LessonView(viewsets.ViewSet, generics.RetrieveAPIView):
     queryset = Lesson.objects.filter(active=True)
     serializer_class = serializers.LessonDetailsSerializer
 
+
     def get_permissions(self):
         if self.action in ['add_comment', 'like']:
             return [permissions.IsAuthenticated()]
@@ -151,12 +152,12 @@ class LessonView(viewsets.ViewSet, generics.RetrieveAPIView):
 
     @action(methods=['get'], detail=True, url_path='list-comments')
     def list_comments(self, request, pk):
-        comments = self.get_object().comment_set.select_related('user').filter(active=True).order_by('-id')
-        paginator = paginators.CommentPaginator()
-        page = paginator.paginate_queryset(comments, request)
+        comments = self.get_object().comment_set.select_related('user').filter(active=True)
+        p = paginators.CommentPaginator()
+        page = p.paginate_queryset(comments, request)
         if page is not None:
             serializer = serializers.CommentSerializer(page, many=True)
-            return paginator.get_paginated_response(serializer.data)
+            return p.get_paginated_response(serializer.data)
         return Response(serializers.CommentSerializer(comments, many=True).data)
 
     @action(methods=['post'], detail=True, url_path='like')
@@ -170,27 +171,6 @@ class LessonView(viewsets.ViewSet, generics.RetrieveAPIView):
 
 
 
-    # @action(methods=['get','post'], url_path="comments", detail=True)
-    # def get_comments(self,request,pk):
-    #     if self.request.method.__eq__('POST'):
-    #         s = serializers.CommentSerializer(data={
-    #             'content': request.data.get('content'),
-    #             'user': self.request.user.pk,
-    #             'lesson': pk,
-    #         })
-    #         s.is_valid(raise_exception=True)
-    #         c = s.save()
-    #
-    #         return Response(serializers.CommentSerializer(c).data,status=status.HTTP_201_CREATED)
-    #
-    #     comments = self.get_object().comment_set.select_related('user').filter(active=True)
-    #     p = paginators.CommentPaginator()
-    #     page = p.paginate_queryset(comments, self.request)
-    #     if page is not None:
-    #         serializer = serializers.CommentSerializer(page, many=True)
-    #         return p.get_paginated_response(serializer.data)
-    #
-    #     return Response(serializers.CommentSerializer(comments, many=True).data, status=status.HTTP_200_OK)
 
 class TagView(viewsets.ViewSet,generics.RetrieveAPIView):
     queryset = Lesson.objects.prefetch_related('tags').filter(active=True)
