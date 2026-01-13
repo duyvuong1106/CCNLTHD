@@ -1,131 +1,73 @@
-import { View } from "react-native";
-import { useState } from "react";
-import { useEffect } from "react";
-import fetchCourse from "../../api/courseApi";
-import { results } from "../../mock/data.mock.courses.json";
-import { HomeHeader } from "../../components/HomeComponents/HomeHeader";
-import { HomeCategories } from "../../components/HomeComponents/HomeCategories";
+import { View, Text, TouchableOpacity, ScrollView, Animated } from "react-native";
+import { useState, useEffect, useContext, useRef, useMemo } from "react";
+import { Icon, Avatar } from "react-native-paper";
+import { MyColorContext } from "../../utils/contexts/MyColorContext";
+import { CourseContext } from "../../utils/contexts/CoursesContext";
+import { MyUserContext } from "../../utils/contexts/MyContext";
 import { HomeBanner } from "../../components/HomeComponents/HomeBanner";
 import { HomeCourseList } from "../../components/HomeComponents/HomeCourseList";
-import HomePromotion from "../../components/HomeComponents/HomePromotion";
-import { useRef } from "react";
-import TextCustom from "../../components/TextCustom";
-import { useContext } from "react";
-import { MyColorContext } from "../../utils/contexts/MyColorContext";
-import { Animated } from "react-native";
-import { useMemo } from "react";
-import { CourseContext } from "../../utils/contexts/CoursesContext";
+import HomePromotion from "../../components/HomeComponents/HomePromotion"; // Đã có file này
+import { HomeCategories } from "../../components/HomeComponents/HomeCategories";
 
-const HEADER_MAX_HEIGHT = 140;
-const HEADER_MIN_HEIGHT = 80;
-
-const HomeScreen = () => {
-  const [courseData, setCourseData] = useState([]);
+const HomeScreen = ({ navigation }) => {
   const { theme } = useContext(MyColorContext);
-  const scrollY = useRef(new Animated.Value(0)).current;
   const { courses, ensureCourses } = useContext(CourseContext);
+  const [user] = useContext(MyUserContext);
 
-  const courseFree = useMemo(
-    () => courses.filter((c) => (c?.price ?? 0) <= 0),
-    [courses],
-  );
+  const courseFree = useMemo(() => courses.filter((c) => (c?.price ?? 0) <= 0), [courses]);
+  const courseExpensive = useMemo(() => courses.filter((c) => (c?.price ?? 0) >= 10000), [courses]);
 
-  const courseExpensive = useMemo(
-    () => courses.filter((c) => (c?.price ?? 0) >= 10000),
-    [courses],
-  );
+  useEffect(() => { ensureCourses(); }, [ensureCourses]);
 
-  useEffect(() => {
-    ensureCourses();
-  }, [ensureCourses]);
-
-  const headerTitleOpacity = scrollY.interpolate({
-    inputRange: [0, HEADER_MAX_HEIGHT - HEADER_MIN_HEIGHT],
-    outputRange: [0, 1],
-    extrapolate: "clamp",
-  });
-
-  // 3. Hiệu ứng thu nhỏ Header hoặc bóc tách (Ví dụ: dịch chuyển Header)
-  const headerTranslate = scrollY.interpolate({
-    inputRange: [0, HEADER_MAX_HEIGHT],
-    outputRange: [0, 0],
-    extrapolate: "clamp",
-  });
-
-  const render = () => {
-    return (
-      <View
-        style={{
-          backgroundColor: theme.colors.gray[100],
-        }}
-      >
-        <HomeHeader
-          text={"Hôm nay bạn muốn học gì?"}
-          subText={"Tiếp tục hành trình khai phá tri thức"}
-          theme={theme}
-        />
-        <HomeBanner theme={theme} />
-        <HomeCategories theme={theme} />
-        <HomeCourseList
-          data={courseFree}
-          text="Top thịnh hành"
-          textClass={{ color: theme.colors.yellow[500] }}
-          iconColor={theme.colors.yellow[500]}
-          icon="star"
-          theme={theme}
-        />
-        <HomePromotion />
-        <HomeCourseList
-          data={courseExpensive}
-          text="Khóa học cao cấp"
-          icon="cash-multiple"
-          textClass={{ color: theme.colors.violet[600] }}
-          iconColor={theme.colors.violet[600]}
-          theme={theme}
-        />
-      </View>
-    );
-  };
   return (
-    <View
-      className="flex-1 "
-      style={{
-        backgroundColor: theme.colors.gray[100],
-      }}
-    >
-      <Animated.View
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: HEADER_MIN_HEIGHT,
-          zIndex: 1000,
-          elevation: 5,
-          opacity: headerTitleOpacity,
-          transform: [{ translateY: headerTranslate }],
-          justifyContent: "center",
-          alignItems: "center",
-          borderBottomWidth: 1,
-          borderBottomColor: "#eee",
-          backgroundColor: theme.colors.gray[100],
-        }}
-      >
-        <TextCustom.TextSection
-          style={{ color: theme.colors.black }}
-          className="mt-8"
-          text="OUCourse"
-        />
-      </Animated.View>
-      <Animated.FlatList
-        ListHeaderComponent={render}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true },
-        )}
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}
-      />
+    <View className="flex-1 bg-slate-50">
+      {/* Header */}
+      <View className="pt-14 px-6 pb-4 bg-white shadow-sm z-10">
+        <View className="flex-row justify-between items-center mb-4">
+          <View>
+             <Text className="text-slate-400 font-medium text-sm">Chào buổi sáng,</Text>
+             <Text className="text-2xl font-black text-slate-800">{user?.last_name || "Bạn mới"} 👋</Text>
+          </View>
+          <TouchableOpacity onPress={() => navigation.navigate("AccountTab")}>
+             <Avatar.Image size={44} source={{ uri: user?.avatar || "https://i.pravatar.cc/300" }} className="bg-slate-200" />
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity 
+          onPress={() => navigation.navigate("SearchTab")}
+          className="flex-row items-center bg-slate-100 p-3 rounded-2xl border border-slate-200"
+        >
+           <Icon source="magnify" size={24} color={theme.colors.slate[400]} />
+           <Text className="ml-3 text-slate-400 font-medium">Bạn muốn học gì?</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+        <View className="mt-6"><HomeBanner theme={theme} /></View>
+        <View className="mt-2 mb-2"><HomeCategories theme={theme} /></View>
+        
+        <View className="mt-4 bg-transparent pl-2">
+           <HomeCourseList
+              data={courseFree}
+              text="Khóa học miễn phí"
+              icon="fire"
+              iconColor="#f59e0b"
+              theme={theme}
+           />
+        </View>
+
+        <HomePromotion />
+
+        <View className="mt-2 mb-20 pl-2">
+           <HomeCourseList
+              data={courseExpensive}
+              text="Dành cho chuyên gia"
+              icon="star-four-points"
+              iconColor="#7c3aed"
+              theme={theme}
+           />
+        </View>
+      </ScrollView>
     </View>
   );
 };

@@ -2,39 +2,39 @@ import "./global.css";
 import { NavigationContainer } from "@react-navigation/native";
 import { View } from "react-native";
 import { MyColorContext } from "./utils/contexts/MyColorContext";
-
 import MyReducers from "./utils/reducers/MyReducers";
 import { MyUserContext } from "./utils/contexts/MyContext";
-import { ActivityIndicator, Icon } from "react-native-paper";
-
+import { ActivityIndicator } from "react-native-paper";
 import { useEffect, useReducer, useState } from "react";
-import axiosClient from "./api/axiosClient";
-import { endpoints } from "./utils/Apis";
-
-import {
-  initialThemeState,
-  ThemeReducer,
-} from "./utils/reducers/ThemeReducers";
+import { initialThemeState, ThemeReducer } from "./utils/reducers/ThemeReducers";
 import TabNavigator from "./navigation/TabNavigation";
 import { CoursesProvider } from "./utils/contexts/CoursesContext";
 import { CategoriesProvider } from "./utils/contexts/CategoriesContext";
+
+// THAY ĐỔI: Import MockApi
+import { MockApi } from "./services/MockDataService";
 
 export default function App() {
   const [user, dispatch] = useReducer(MyReducers, null);
   const [theme, themeDispatch] = useReducer(ThemeReducer, initialThemeState);
   const [loading, setLoading] = useState(false);
+
   useEffect(() => {
     const hydrateAuth = async () => {
-      let token;
       setLoading(true);
       try {
-        const res = await axiosClient.get(endpoints.current_user);
-        dispatch({
-          type: "login",
-          payload: res?.data,
-        });
+        // THAY ĐỔI: Gọi Mock API để lấy User giả lập
+        // Nếu bạn muốn test "Chưa đăng nhập", hãy comment dòng này lại
+        const res = await MockApi.getCurrentUser();
+        
+        if (res?.data) {
+          dispatch({
+            type: "login",
+            payload: res.data,
+          });
+        }
       } catch (error) {
-        console.error("Use effect App", error);
+        console.log("Mock Mode: Người dùng chưa đăng nhập hoặc lỗi mock data");
       } finally {
         setLoading(false);
       }

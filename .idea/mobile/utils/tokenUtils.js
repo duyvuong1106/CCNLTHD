@@ -1,37 +1,43 @@
-import { deleteItemAsync, getItemAsync, setItemAsync } from "expo-secure-store";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const TOKEN_KEY = "TOKEN";
+const TOKEN_KEY = 'access_token';
+const USER_KEY = 'user_info';
 
-export const saveTokens = async (accessToken, refreshToken) => {
+export const saveTokens = async (token) => {
   try {
-    const keys = JSON.stringify({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
-    await setItemAsync(TOKEN_KEY, keys);
-    console.log("save token success!");
-  } catch (error) {
-    console.error("save token failed: ", error.message);
+    await AsyncStorage.setItem(TOKEN_KEY, token);
+  } catch (e) {
+    console.error("Lỗi lưu token", e);
   }
 };
 
 export const getTokens = async () => {
   try {
-    const jsonData = await getItemAsync(TOKEN_KEY);
-    console.log("get token success!");
-
-    return jsonData ? JSON.parse(jsonData) : null;
-  } catch (error) {
-    console.error("get token failed: ", error.message);
+    const token = await AsyncStorage.getItem(TOKEN_KEY);
+    return token ? { access_token: token } : null;
+  } catch (e) {
     return null;
   }
 };
 
 export const removeTokens = async () => {
   try {
-    await deleteItemAsync(TOKEN_KEY);
-    console.log("remove token success!");
-  } catch (error) {
-    console.error("Remove token failed: ", error.message);
+    await AsyncStorage.removeItem(TOKEN_KEY);
+    await AsyncStorage.removeItem(USER_KEY);
+  } catch (e) {
+    console.error("Lỗi xóa token", e);
   }
+};
+
+export const saveUser = async (user) => {
+    try {
+        await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
+    } catch (e) { console.error(e); }
+};
+
+export const getUser = async () => {
+    try {
+        const user = await AsyncStorage.getItem(USER_KEY);
+        return user ? JSON.parse(user) : null;
+    } catch(e) { return null; }
 };

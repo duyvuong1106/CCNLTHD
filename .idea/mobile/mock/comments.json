@@ -1,0 +1,27 @@
+{
+  "filename": "mobile/mock/comments.json",
+  "content": [
+    {
+      "id": 1,
+      "lesson_id": 101,
+      "content": "Bài học rất hay, cảm ơn thầy!",
+      "created_date": "2025-01-10T10:00:00Z",
+      "user": {
+        "first_name": "Nguyễn",
+        "last_name": "Văn A",
+        "avatar": "https://i.pravatar.cc/150?img=3"
+      }
+    },
+    {
+      "id": 2,
+      "lesson_id": 101,
+      "content": "Phần cài đặt Expo hơi khó hiểu đoạn path.",
+      "created_date": "2025-01-11T09:30:00Z",
+      "user": {
+        "first_name": "Trần",
+        "last_name": "Thị B",
+        "avatar": "https://i.pravatar.cc/150?img=5"
+      }
+    }
+  ]
+}

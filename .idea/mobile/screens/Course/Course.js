@@ -1,215 +1,105 @@
-import {
-  Text,
-  TouchableOpacity,
-  View,
-  ScrollView,
-  ImageBackground,
-  ActivityIndicator,
-  Dimensions,
-} from "react-native";
-import RenderHTML from "react-native-render-html";
-import { Icon } from "react-native-paper";
-import HeaderCustom from "../../components/Header";
+import { View, Text, ScrollView, Image, TouchableOpacity, useWindowDimensions } from "react-native";
+import { useEffect, useState, useContext } from "react";
+import { ActivityIndicator, Icon, Button } from "react-native-paper";
+import RenderHtml from "react-native-render-html";
 import { MyColorContext } from "../../utils/contexts/MyColorContext";
+import { MockApi } from "../../services/MockDataService"; // Gọi API giả
 
-import { useContext, useState, useEffect } from "react";
-import axiosClient from "../../api/axiosClient";
-import { endpoints } from "../../utils/Apis";
-import { useNavigation, useRoute } from "@react-navigation/native";
-
-const CourseDetailedScreen = () => {
-  const route = useRoute();
-  const [course, setCourse] = useState();
-  const [isLoading, setLoading] = useState(false);
+const Course = ({ route, navigation }) => {
   const { theme } = useContext(MyColorContext);
-  const { id } = route.params;
-  const { width } = Dimensions.get("window");
-  const nav = useNavigation();
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const params = `${endpoints.courses}${id}/`;
-        let res = await axiosClient.get(params);
+  const { width } = useWindowDimensions();
+  
+  // Lấy ID khóa học từ tham số điều hướng
+  const { id } = route.params || {}; 
+  
+  const [course, setCourse] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const loadCourse = async () => {
+      if (!id) return;
+      setLoading(true);
+      try {
+        const res = await MockApi.getCourseDetail(id);
         setCourse(res.data);
       } catch (error) {
-        console.error(error);
+        console.error("Lỗi tải chi tiết khóa học:", error);
+      } finally {
+        setLoading(false);
       }
     };
-    if (id) loadData();
+    loadCourse();
   }, [id]);
-  useEffect(() => {
-    if (course) {
-      console.log("Dữ liệu khóa học đã cập nhật:", course);
-    }
-  }, [course]);
 
-  if (!course) {
+  // Nếu đang tải hoặc không có ID
+  if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#0000ff" />
-        <Text>Đang tải thông tin khóa học...</Text>
+      <View className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN").format(amount) + " đ";
-  };
+  if (!course) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <Text className="text-slate-500">Không tìm thấy thông tin khóa học</Text>
+        <Button mode="text" onPress={() => navigation.goBack()}>Quay lại</Button>
+      </View>
+    );
+  }
 
-  const handleEnroll = async (course) => {
-    try {
-      // "id": 7,
-      // "subject": "Machine Learning căn bản",
-      // "instructor": "Ngô Tiến Đạt",
-      // "image": "https://img.freepik.com/free-vector/machine-learning-concept-illustration_114360-3908.jpg",
-      // "category": "Data Science",
-      // "description": "<strong>Thuật toán và Ứng dụng</strong><p>Tìm hiểu Linear Regression, Decision Trees và cách huấn luyện mô hình dự đoán đầu tiên.</p>",
-      // "price": 800000
-
-      const formData = new FormData();
-      formData.append("id", course.id);
-      formData.append("status", "ENROLLED");
-      const res = await axiosClient.post(
-        endpoints.enrollCourse(course.id),
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        },
-      );
-
-      console.log("Enroll DONE");
-
-      console.log("RES enrroll: ", res);
-      nav.goBack();
-    } catch (error) {
-      console.error(error);
-    }
-  };
   return (
-    <View
-      className=" flex-1"
-      style={{
-        backgroundColor: theme.colors.white,
-      }}
-    >
-      <ScrollView
-        className="pt-10 "
-        style={{
-          backgroundColor: theme.colors.white,
-        }}
-      >
-        <HeaderCustom text={course.subject} />
-        <View>
-          <ImageBackground
-            source={{ uri: course.image }}
-            className="w-full h-52 rounded-xl"
-            style={{ width: width }}
-          ></ImageBackground>
-          <View className="px-5 -mt-8  pt-8 shadow-2xl">
-            <View
-              className="flex-row items-center mt-6  rounded-2xl"
-              style={{
-                backgroundColor: theme.colors.gray[50],
-              }}
-            >
-              <View
-                className=" p-2 rounded-full"
-                style={{
-                  backgroundColor: theme.colors.slate[500],
-                }}
-              >
-                <Icon source="account-tie" size={24} color="white" />
-              </View>
-              <View className="ml-4">
-                <Text
-                  className=" text-xs"
-                  style={{
-                    color: theme.colors.gray[400],
-                  }}
-                >
-                  Giảng viên chuyên môn
-                </Text>
-                <Text
-                  className=" text-lg font-bold"
-                  style={{
-                    color: theme.colors.gray[900],
-                  }}
-                >
-                  {course.instructor}
-                </Text>
-              </View>
-            </View>
-            <View className="mt-8 mb-20">
-              <Text
-                className="text-xl font-bold  mb-2 tracking-tight"
-                style={{
-                  color: theme.colors.gray[900],
-                }}
-              >
-                Giới thiệu khóa học
-              </Text>
-              <Text className="text-xs uppercase  tracking-tight font-semibold">
-                {course.category}
-              </Text>
-              <View className="mt-2 ">
-                <RenderHTML
-                  contentWidth={width}
-                  source={{ html: course.description }}
-                />
-              </View>
-            </View>
+    <View className="flex-1 bg-white">
+      <ScrollView className="flex-1">
+        {/* Ảnh bìa khóa học */}
+        <Image 
+            source={{ uri: course.image }} 
+            style={{ width: "100%", height: 250 }} 
+            resizeMode="cover"
+        />
+        
+        <View className="p-5">
+          {/* Tên & Giảng viên */}
+          <Text className="text-2xl font-bold text-slate-800 mb-2">{course.subject}</Text>
+          <View className="flex-row items-center mb-4">
+              <Icon source="account-circle-outline" size={20} color="gray" />
+              <Text className="ml-2 text-slate-500 font-medium">{course.instructor}</Text>
           </View>
-          <View className="flex-row justify-between ">
-            <View className="pl-4">
-              <Text
-                className=" text-xl uppercase font-bold"
-                style={{
-                  color: theme.colors.gray[400],
-                }}
-              >
-                Học phí
-              </Text>
-              <Text
-                className=" text-base font-extrabold"
-                style={{
-                  color: theme.colors.slate[600],
-                }}
-              >
-                {course.price < 0 ? "Miễn phí" : formatCurrency(course.price)}
-              </Text>
-            </View>
 
-            <TouchableOpacity
-              style={{
-                backgroundColor: isLoading
-                  ? theme.colors.gray[400]
-                  : theme.colors.slate[600],
-                shadowColor: isLoading
-                  ? theme.colors.tabActive
-                  : theme.colors.tabInactive,
-              }}
-              className={`p-4 mr-4 rounded-2xl shadow-lg`}
-              onPress={() => handleEnroll(course)}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="white" size="small" />
-              ) : (
-                <Text
-                  className=" font-bold text-lg"
-                  style={{
-                    color: theme.colors.white,
-                  }}
-                >
-                  Đăng ký ngay
-                </Text>
-              )}
-            </TouchableOpacity>
+          {/* Giá tiền */}
+          <Text className="text-xl font-bold text-blue-600 mb-4">
+            {course.price === 0 ? "Miễn phí" : `${course.price.toLocaleString()} đ`}
+          </Text>
+
+          {/* Mô tả (Render HTML) */}
+          <View className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+             <Text className="font-bold mb-2 text-slate-700">Giới thiệu khóa học</Text>
+             <RenderHtml
+                contentWidth={width - 40}
+                source={{ html: course.description || "<p>Chưa có mô tả chi tiết.</p>" }}
+             />
           </View>
         </View>
+        
+        {/* Khoảng trống dưới cùng để không bị che bởi nút */}
+        <View style={{ height: 100 }} />
       </ScrollView>
+
+      {/* Nút Action cố định ở dưới */}
+      <View className="absolute bottom-0 left-0 right-0 p-4 bg-white border-t border-slate-100 shadow-lg">
+        <Button 
+            mode="contained" 
+            contentStyle={{ height: 48 }}
+            labelStyle={{ fontSize: 16, fontWeight: "bold" }}
+            className="rounded-full bg-blue-600"
+            onPress={() => navigation.navigate("Lesson", { courseId: course.id })}
+        >
+            {course.price === 0 ? "Vào học ngay" : "Đăng ký ngay"}
+        </Button>
+      </View>
     </View>
   );
 };
-export default CourseDetailedScreen;
+
+export default Course;

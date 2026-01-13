@@ -1,0 +1,22 @@
+{
+  "content": [
+    {
+      "id": 1,
+      "image": "https://img.freepik.com/free-vector/flat-geometric-online-courses-facebook-cover_23-2149593466.jpg",
+      "title": "Khuyến mãi mùa hè",
+      "link": "Course/1"
+    },
+    {
+      "id": 2,
+      "image": "https://img.freepik.com/free-psd/e-learning-banner-design-template_23-2149113697.jpg",
+      "title": "Học Python giảm 50%",
+      "link": "Course/2"
+    },
+    {
+      "id": 3,
+      "image": "https://t3.ftcdn.net/jpg/03/10/37/97/360_F_310379744_m4d9Xq9J0Q0Q0Q0Q0Q0Q0Q0Q0Q0Q0Q0Q.jpg",
+      "title": "React Native Masterclass",
+      "link": "Course/1"
+    }
+  ]
+}

@@ -1,176 +1,84 @@
-import AuthLayout from "../../components/AuthLayout";
-import { Image, Text, TouchableOpacity, Pressable } from "react-native";
-import { List, TextInput } from "react-native-paper";
-import * as ImagePicker from "expo-image-picker";
+import { View, Text, ScrollView, TouchableOpacity, Image, Alert } from "react-native";
+import { useState } from "react";
+import { TextInput, ActivityIndicator, HelperText } from "react-native-paper";
+import { MockApi } from "../../api/MockDataService";
 
-import TextCustom from "../../components/TextCustom";
-import { ActivityIndicator } from "react-native";
-import { MyColorContext } from "../../utils/contexts/MyColorContext";
-
-import { registerApi } from "../../api/registerApi";
-import { useContext, useState } from "react";
-import { useNavigation } from "@react-navigation/native";
-
-const Register = () => {
-  const jsonData = require("../../mock/data.config.register.json");
-  const fieldsRender = jsonData.info;
-  const { theme } = useContext(MyColorContext);
-  const [user, setUser] = useState({});
-  const [err, setErr] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPass, setShowConfirmPass] = useState(false);
+const Register = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
-  const nav = useNavigation();
+  const [user, setUser] = useState({
+    first_name: "",
+    last_name: "",
+    username: "",
+    password: "",
+    confirm_password: "",
+    email: "",
+  });
+  const [error, setError] = useState("");
 
-  const pickImage = async () => {
-    let { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  const handleRegister = async () => {
+    // Validate cơ bản
+    if (user.password !== user.confirm_password) {
+      setError("Mật khẩu xác nhận không khớp");
+      return;
+    }
+    if (!user.username || !user.password) {
+      setError("Vui lòng điền đầy đủ thông tin");
+      return;
+    }
 
-    if (status !== "granted") {
-      alert("Permissions denied!");
-    } else {
-      const result = await ImagePicker.launchImageLibraryAsync();
-      if (!result.canceled) {
-        setUser({ ...user, avatar: result.assets[0] });
-      }
+    setLoading(true);
+    setError("");
+    try {
+      // Gọi Mock API
+      await MockApi.register(user);
+      Alert.alert("Thành công", "Đăng ký tài khoản thành công! Vui lòng đăng nhập.", [
+        { text: "OK", onPress: () => navigation.navigate("Login") },
+      ]);
+    } catch (err) {
+      setError("Đăng ký thất bại. Tên đăng nhập có thể đã tồn tại.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const validate = () => {
-    if (!user.password || user.password !== user.confirm) {
-      setErr(true);
-      return false;
-    }
-    setErr(false);
-    return true;
+  const handleChange = (field, value) => {
+    setUser({ ...user, [field]: value });
   };
-  const getMimeType = (fileUri) => {
-    // 1. Lấy đuôi file (extension) từ URI (ví dụ: .jpeg, .png)
-    const extension = fileUri.split(".").pop().toLowerCase();
 
-    // 2. Check và trả về type chuẩn
-    switch (extension) {
-      case "jpg":
-      case "jpeg":
-        return "image/jpeg";
-      case "png":
-        return "image/png";
-      case "gif":
-        return "image/gif";
-      case "heic": // Định dạng ảnh của iPhone
-        return "image/heic";
-      default:
-        return "image/jpeg"; // Mặc định an toàn nhất là jpeg
-    }
-  };
-  const register = async () => {
-    if (validate() === true) {
-      setLoading(true);
-
-      try {
-        let form = new FormData();
-        for (let key in user)
-          if (key !== "confirm") {
-            if (key === "avatar") {
-              form.append(key, {
-                uri: user.avatar.uri,
-                name: user.avatar.uri.split("/").pop(),
-                type: getMimeType(user.avatar.type),
-              });
-            } else form.append(key, user[key]);
-          }
-        console.info(user);
-        console.log(form);
-        const res = await registerApi.register(form);
-        console.log(res.status);
-        if (res.status === 201) {
-          nav.navigate("Login");
-        }
-        console.log("DANG KY THANH CONG");
-        nav.navigate("Login");
-      } catch (ex) {
-        console.error(ex);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
   return (
-    <AuthLayout title="ĐĂNG KÝ NGƯỜI DÙNG">
-      {fieldsRender.map((item) => {
-        const isPasswordField =
-          item.field === "password" || item.field === "confirm";
-
-        const isVisible =
-          item.field === "password" ? showPassword : showConfirmPass;
-        const toggleVisibility = () => {
-          if (item.field === "password") setShowPassword(!showPassword);
-          else setShowConfirmPass(!showConfirmPass);
-        };
-        return (
-          <TextInput
-            key={item.field}
-            value={user[item.field]}
-            onChangeText={(t) => setUser({ ...user, [item.field]: t })}
-            label={item.title}
-            secureTextEntry={isPasswordField ? !isVisible : false}
-            activeOutlineColor={theme.colors.slate[500]}
-            right={
-              isPasswordField ? (
-                <TextInput.Icon
-                  icon={isVisible ? "eye-off" : "eye"}
-                  onPress={toggleVisibility}
-                />
-              ) : (
-                <TextInput.Icon icon={item.icon} />
-              )
-            }
-            mode="outlined"
-          />
-        );
-      })}
-      <TouchableOpacity
-        className="border-2 p-2  rounded-md mt-2 border-slate-500"
-        onPress={pickImage}
-      >
-        <TextCustom.TextMuted text="Chọn ảnh đại diện..." />
-      </TouchableOpacity>
-      {user.avatar && (
-        <Image
-          source={{ uri: user.avatar.uri }}
-          style={{ width: 100, height: 100, marginTop: 10, borderRadius: 10 }}
+    <ScrollView className="flex-1 bg-white px-6 pt-10">
+      <View className="items-center mb-8">
+        <Image 
+            source={require("../../assets/logo_OUCourse.png")} 
+            style={{ width: 80, height: 80, resizeMode: 'contain' }} 
         />
-      )}
-      <Pressable
-        onPress={register}
+        <Text className="text-2xl font-bold text-blue-600 mt-2">Tạo tài khoản mới</Text>
+      </View>
+
+      {error ? <HelperText type="error" visible={true}>{error}</HelperText> : null}
+
+      <View className="space-y-4">
+        <TextInput label="Họ" mode="outlined" value={user.last_name} onChangeText={(t) => handleChange("last_name", t)} />
+        <TextInput label="Tên" mode="outlined" value={user.first_name} onChangeText={(t) => handleChange("first_name", t)} />
+        <TextInput label="Email" mode="outlined" value={user.email} onChangeText={(t) => handleChange("email", t)} />
+        <TextInput label="Tên đăng nhập" mode="outlined" value={user.username} onChangeText={(t) => handleChange("username", t)} autoCapitalize="none" />
+        <TextInput label="Mật khẩu" mode="outlined" secureTextEntry value={user.password} onChangeText={(t) => handleChange("password", t)} />
+        <TextInput label="Nhập lại mật khẩu" mode="outlined" secureTextEntry value={user.confirm_password} onChangeText={(t) => handleChange("confirm_password", t)} />
+      </View>
+
+      <TouchableOpacity
+        onPress={handleRegister}
         disabled={loading}
-        className="mt-4 p-3 rounded-xl flex-row justify-center items-center shadow-md"
-        style={{
-          backgroundColor: loading
-            ? theme.colors.slate[400]
-            : theme.colors.slate[700],
-        }}
+        className="bg-blue-600 p-4 rounded-xl mt-8 items-center"
       >
-        {loading ? (
-          <ActivityIndicator
-            animating={true}
-            color={theme.colors.white}
-            size="small"
-          />
-        ) : (
-          <>
-            <List.Icon icon="account" color={theme.colors.white} />
-            <Text
-              className="font-bold ml-1 text-base"
-              style={{
-                color: theme.colors.white,
-              }}
-            >
-              ĐĂNG KÝ
-            </Text>
-          </>
-        )}
-      </Pressable>
-    </AuthLayout>
+        {loading ? <ActivityIndicator color="white" /> : <Text className="text-white font-bold text-lg">ĐĂNG KÝ</Text>}
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => navigation.goBack()} className="mt-6 items-center mb-10">
+        <Text className="text-slate-500">Đã có tài khoản? <Text className="text-blue-600 font-bold">Đăng nhập</Text></Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
+
 export default Register;

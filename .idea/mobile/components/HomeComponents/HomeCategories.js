@@ -1,56 +1,29 @@
-import { TouchableOpacity, View, FlatList, Text } from "react-native";
-import TextCustom from "../TextCustom";
-import { Icon } from "react-native-paper";
+import { View, Text, ScrollView, TouchableOpacity, Image } from "react-native";
 import { useContext } from "react";
 import { CategoriesContext } from "../../utils/contexts/CategoriesContext";
-import { useEffect } from "react";
-import { useMemo } from "react";
 
-export const HomeCategories = ({ iconColor = "", theme }) => {
-  const { categories, ensureCategories } = useContext(CategoriesContext);
-  const topCategories = useMemo(() => categories.slice(0, 12), [categories]);
-  useEffect(() => {
-    ensureCategories();
-  }, [ensureCategories]);
+export const HomeCategories = ({ theme }) => {
+  const { categories, loading } = useContext(CategoriesContext);
+
+  if (loading || categories.length === 0) return null;
+
   return (
-    <View className="p-5">
-      <View className="flex-row gap-3">
-        <Icon
-          source="tag"
-          size={28}
-          color={iconColor ? iconColor : theme.colors.slate[600]}
-        />
-        <TextCustom.TextSection
-          text={"Danh mục"}
-          style={{ color: theme.colors.slate[500] }}
-        />
-      </View>
-      <FlatList
-        className="mt-4"
-        horizontal
-        data={topCategories}
-        keyExtractor={(item) => item.id}
-        showsHorizontalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            className=" rounded-lg px-4 py-3 mr-3 "
-            style={{
-              backgroundColor: theme.colors.slate[500],
-            }}
-            onPress={() => {
-              setActiveId(item.id);
-            }}
+    <View className="pl-4">
+      <Text className="font-bold text-lg mb-3 text-slate-800">Danh mục nổi bật</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        {categories.map((c) => (
+          <TouchableOpacity 
+            key={c.id} 
+            className="mr-4 items-center"
+            // Thêm action chuyển trang Search với filter category nếu cần
           >
-            <Text
-              style={{
-                color: theme.colors.slate[200],
-              }}
-            >
-              {item.name}
-            </Text>
+            <View className="w-16 h-16 bg-white rounded-2xl items-center justify-center shadow-sm border border-slate-100 mb-2">
+               <Image source={{ uri: c.image }} style={{ width: 32, height: 32 }} resizeMode="contain" />
+            </View>
+            <Text className="text-xs font-medium text-slate-600">{c.name}</Text>
           </TouchableOpacity>
-        )}
-      />
+        ))}
+      </ScrollView>
     </View>
   );
 };

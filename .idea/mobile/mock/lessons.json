@@ -1,0 +1,31 @@
+{
+  "content": [
+    {
+      "id": 101,
+      "course_id": 1,
+      "subject": "Bài 1: Giới thiệu React Native",
+      "video_id": "gvkqT_Uoahw",
+      "content": "Tổng quan về kiến trúc React Native và cách hoạt động.",
+      "image": "https://img.youtube.com/vi/gvkqT_Uoahw/maxresdefault.jpg",
+      "order": 1
+    },
+    {
+      "id": 102,
+      "course_id": 1,
+      "subject": "Bài 2: Cài đặt môi trường",
+      "video_id": "0-S5a0eXPoc",
+      "content": "Hướng dẫn cài đặt Node.js, Expo và Android Studio.",
+      "image": "https://img.youtube.com/vi/0-S5a0eXPoc/maxresdefault.jpg",
+      "order": 2
+    },
+    {
+      "id": 103,
+      "course_id": 2,
+      "subject": "Bài 1: Khởi tạo dự án Django",
+      "video_id": "F5mRW0jo-U4",
+      "content": "Tạo virtualenv và project Django đầu tiên.",
+      "image": "https://img.youtube.com/vi/F5mRW0jo-U4/maxresdefault.jpg",
+      "order": 1
+    }
+  ]
+}

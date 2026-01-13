@@ -1,79 +1,83 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import AccountStack from "./AccountStack";
-import HomeStack from "./HomeStack";
-import LearningStack from "./LearningStack";
-import SearchStack from "./SearchStack";
 import { useContext } from "react";
-import { MyUserContext } from "../utils/contexts/MyContext";
-import { MyColorContext } from "../utils/contexts/MyColorContext";
 import { Icon } from "react-native-paper";
+import { MyColorContext } from "../utils/contexts/MyColorContext";
+
+// Import các Stack con
+import HomeStack from "./HomeStack";
+import SearchStack from "./SearchStack";
+import LearningStack from "./LearningStack";
+import AccountStack from "./AccountStack";
 
 const Tab = createBottomTabNavigator();
+
 const TabNavigator = () => {
-  const [user] = useContext(MyUserContext);
   const { theme } = useContext(MyColorContext);
+
   return (
     <Tab.Navigator
-      screenOptions={{
-        headerShown: false, // ẩn header của tab
+      screenOptions={({ route }) => ({
+        headerShown: false,
         tabBarStyle: {
-          backgroundColor: theme.colors.gray[100],
-          borderTopColor: theme.colors.slate[200],
+          backgroundColor: theme.colors.background || "#ffffff",
+          borderTopColor: theme.colors.border || "#e2e8f0",
+          height: 60,
+          paddingBottom: 8,
+          paddingTop: 8,
         },
-      }}
+        tabBarActiveTintColor: "#2563eb", // Màu xanh active
+        tabBarInactiveTintColor: "#94a3b8", // Màu xám inactive
+        tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: "600"
+        }
+      })}
     >
       <Tab.Screen
-        name={"Home"}
+        name="HomeTab"
         component={HomeStack}
         options={{
-          tabBarIcon: () => (
-            <Icon color={theme.colors.iconDefault} source="home" size={30} />
+          title: "Trang chủ",
+          tabBarIcon: ({ color, size }) => (
+            <Icon source="home" size={size} color={color} />
           ),
-          tabBarActiveTintColor: theme.colors.tabActive,
-          tabBarInactiveTintColor: theme.colors.tabInactive,
         }}
       />
+      
       <Tab.Screen
-        name="Search"
+        name="SearchTab"
         component={SearchStack}
         options={{
           title: "Tìm kiếm",
-          tabBarIcon: () => (
-            <Icon color={theme.colors.iconDefault} source="magnify" size={30} />
+          tabBarIcon: ({ color, size }) => (
+            <Icon source="magnify" size={size} color={color} />
           ),
-          tabBarActiveTintColor: theme.colors.tabActive,
-          tabBarInactiveTintColor: theme.colors.tabInactive,
         }}
       />
+
       <Tab.Screen
-        name="Learning"
+        name="LearningTab"
         component={LearningStack}
         options={{
-          title: "Học nào",
-          tabBarIcon: () => (
-            <Icon
-              color={theme.colors.iconDefault}
-              source="play-circle-outline"
-              size={30}
-            />
+          title: "Học tập",
+          tabBarIcon: ({ color, size }) => (
+            <Icon source="play-circle-outline" size={size} color={color} />
           ),
-          tabBarActiveTintColor: theme.colors.tabActive,
-          tabBarInactiveTintColor: theme.colors.tabInactive,
         }}
       />
+
       <Tab.Screen
-        name={"Account"}
+        name="AccountTab"
         component={AccountStack}
         options={{
           title: "Tài khoản",
-          tabBarIcon: () => (
-            <Icon color={theme.colors.iconDefault} source="account" size={30} />
+          tabBarIcon: ({ color, size }) => (
+            <Icon source="account" size={size} color={color} />
           ),
-          tabBarActiveTintColor: theme.colors.tabActive,
-          tabBarInactiveTintColor: theme.colors.tabInactive,
         }}
       />
     </Tab.Navigator>
   );
 };
+
 export default TabNavigator;

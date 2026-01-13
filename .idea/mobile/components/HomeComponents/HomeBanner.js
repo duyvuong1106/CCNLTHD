@@ -1,65 +1,47 @@
-import { FlatList } from "react-native";
-import { View } from "react-native";
-import Banner from "../Banner";
+import { View, Image, Dimensions } from "react-native";
+import { useState, useEffect } from "react";
+import Carousel from "react-native-reanimated-carousel"; // Nếu project có dùng thư viện này
+// Nếu không dùng thư viện carousel, có thể dùng ScrollView ngang đơn giản
+import { MockApi } from "../../services/MockDataService";
 
-import { useRef } from "react";
-import { useNavigation } from "@react-navigation/native";
-import { useState } from "react";
-import { useEffect } from "react";
-
-import { images } from "../../mock/data.mock.banner.json";
+const width = Dimensions.get("window").width;
 
 export const HomeBanner = ({ theme }) => {
-  const flatListRef = useRef(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [banners, setBanners] = useState([]);
 
-  const nav = useNavigation();
   useEffect(() => {
-    const interval = setInterval(() => {
-      let nextIndex = (currentIndex + 1) % images.length;
-      flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
-      setCurrentIndex(nextIndex);
-    }, 5000);
+    const fetchBanners = async () => {
+        try {
+            const res = await MockApi.getBanners();
+            setBanners(res.data.results);
+        } catch(e) { console.log(e) }
+    };
+    fetchBanners();
+  }, []);
 
-    return () => clearInterval(interval);
-  }, [currentIndex]);
+  if (banners.length === 0) return null;
+
+  // Render đơn giản dùng ScrollView nếu không muốn cài thêm lib
+  // Ở đây giả định dùng Carousel như code gốc, nếu lỗi thư viện thì báo mình sửa thành ScrollView
   return (
-    <View>
-      <FlatList
-        ref={flatListRef}
-        data={images}
-        className="mb-4 gap-3"
-        horizontal
-        pagingEnabled
-        decelerationRate="fast"
-        snapToAlignment="center"
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(item, index) => index.toString()}
+    <View style={{ height: 180, width: "100%", marginBottom: 20 }}>
+      <Carousel
+        loop
+        width={width}
+        height={180}
+        autoPlay={true}
+        data={banners}
+        scrollAnimationDuration={2000}
         renderItem={({ item }) => (
-          <Banner
-            navigation={nav}
-            text="🔥Khóa học React Native"
-            subText="Giảm giá 50% trong tuần này"
-            item={item}
-          />
+          <View style={{ flex: 1, justifyContent: "center", paddingHorizontal: 16 }}>
+            <Image
+              source={{ uri: item.image }}
+              style={{ width: "100%", height: "100%", borderRadius: 20 }}
+              resizeMode="cover"
+            />
+          </View>
         )}
       />
-      <View className="flex-row justify-center mb-3">
-        {images.map((_, index) => (
-          <View
-            key={index}
-            className={`ml-2 mr-2 rounded-full ${
-              currentIndex === index ? "w-6 h-3" : "w-3 h-3"
-            }`}
-            style={{
-              backgroundColor:
-                currentIndex === index
-                  ? theme.colors.slate[500]
-                  : theme.colors.gray[200],
-            }}
-          />
-        ))}
-      </View>
     </View>
   );
 };

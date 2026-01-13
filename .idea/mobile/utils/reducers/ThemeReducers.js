@@ -1,26 +1,17 @@
-import AppColors from "../ColorsUtils";
+import { Colors } from "../ColorsUtils";
 
 export const initialThemeState = {
   mode: "light",
-  colors: AppColors.light,
+  colors: Colors.light,
 };
-export function ThemeReducer(state, action) {
+
+export const ThemeReducer = (state, action) => {
   switch (action.type) {
-    case "TOGGLE_THEME": {
-      const nextMode = state.mode === "light" ? "dark" : "light";
-      return {
-        mode: nextMode,
-        colors: AppColors[nextMode],
-      };
-    }
-
-    case "SET_THEME":
-      return {
-        mode: action.mode,
-        colors: AppColors[action.mode],
-      };
-
+    case "light":
+      return { mode: "light", colors: Colors.light };
+    case "dark":
+      return { mode: "dark", colors: Colors.dark };
     default:
       return state;
   }
-}
+};

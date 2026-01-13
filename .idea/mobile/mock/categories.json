@@ -1,0 +1,29 @@
+{
+  "content": [
+    {
+      "id": 1,
+      "name": "Mobile App",
+      "image": "https://img.icons8.com/fluency/96/cell-phone.png"
+    },
+    {
+      "id": 2,
+      "name": "Backend",
+      "image": "https://img.icons8.com/fluency/96/server.png"
+    },
+    {
+      "id": 3,
+      "name": "Web Development",
+      "image": "https://img.icons8.com/fluency/96/domain.png"
+    },
+    {
+      "id": 4,
+      "name": "Design",
+      "image": "https://img.icons8.com/fluency/96/design.png"
+    },
+    {
+      "id": 5,
+      "name": "DevOps",
+      "image": "https://img.icons8.com/fluency/96/cloud-computing.png"
+    }
+  ]
+}

@@ -1,67 +1,64 @@
-import HeaderCustom from "../../components/Header";
-import { TouchableOpacity, View } from "react-native";
-import { useEffect } from "react";
-import { useState } from "react";
-import axiosClient from "../../api/axiosClient";
-import { endpoints } from "../../utils/Apis";
-import { Image } from "react-native";
+import { View, Text, FlatList, Image, TouchableOpacity } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, ProgressBar } from "react-native-paper";
+import { MockApi } from "../../services/MockDataService";
 
-import { results } from "../../mock/data.mock.courses.json";
-import TextCustom from "../../components/TextCustom";
-import { FlatList } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { useContext } from "react";
-import { MyColorContext } from "../../utils/contexts/MyColorContext";
+const UserLearning = ({ navigation }) => {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-const UserLearning = () => {
-  const [corse, setCourse] = useState(null);
   useEffect(() => {
-    const loadData = async () => {
-      const res = axiosClient.get(endpoints.courses);
+    const fetchMyCourses = async () => {
+      try {
+        // Giả lập: Lấy tất cả khóa học và user "đã mua" 2 khóa đầu tiên
+        const res = await MockApi.getCourses();
+        const allCourses = res.data.results;
+        setCourses(allCourses.slice(0, 3)); // Lấy 3 khóa làm mẫu
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
     };
-  });
-  const nav = useNavigation();
-  const { theme } = useContext(MyColorContext);
+    fetchMyCourses();
+  }, []);
+
+  if (loading) return <ActivityIndicator className="mt-10" />;
+
   return (
-    <View
-      className="pt-10 flex-1"
-      style={{ backgroundColor: theme.colors.gray[100] }}
-    >
-      <HeaderCustom text="Danh sách bài học của tôi" />
-      <View style={{ backgroundColor: theme.colors.slate[300] }}>
-        <FlatList
-          data={results}
-          contentContainerStyle={{
-            paddingBottom: 52,
-          }}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              key={item.id}
-              delayPressIn={0.6}
-              activeOpacity={0.6}
-              onPress={() => nav.navigate("Lesson", { item: item })}
-            >
-              <View className="flex-row">
-                <View>
-                  <Image className="w-24 h-24" source={{ uri: item.image }} />
-                </View>
-                <View className="justify-end border-b w-full m-2 border-gray-200">
-                  <TextCustom.TextMuted text={item.category} />
-                  <TextCustom.TextSection
-                    className="text-xl"
-                    style={{ color: theme.colors.yellow[500] }}
-                    text={item.subject}
-                  />
-                  <TextCustom.TextFocus
-                    text={item.instructor}
-                    style={{ color: theme.colors.blue[500] }}
-                  />
-                </View>
+    <View className="flex-1 bg-slate-50 p-4">
+      <Text className="text-xl font-bold mb-4 text-slate-800">Tiến độ học tập</Text>
+      
+      <FlatList
+        data={courses}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => navigation.navigate("CourseDetailedScreen", { id: item.id })} // Chuyển sang chi tiết khóa học
+            className="bg-white p-3 rounded-xl mb-4 flex-row shadow-sm"
+          >
+            <Image 
+                source={{ uri: item.image }} 
+                className="w-20 h-20 rounded-lg bg-gray-200" 
+            />
+            <View className="flex-1 ml-3 justify-between">
+              <View>
+                  <Text className="font-bold text-base text-slate-800" numberOfLines={1}>{item.subject}</Text>
+                  <Text className="text-xs text-slate-500 mt-1">{item.instructor}</Text>
               </View>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
+              
+              {/* Giả lập thanh tiến độ ngẫu nhiên */}
+              <View>
+                  <View className="flex-row justify-between mb-1">
+                      <Text className="text-[10px] text-slate-400">Hoàn thành</Text>
+                      <Text className="text-[10px] font-bold text-blue-600">75%</Text>
+                  </View>
+                  <ProgressBar progress={0.75} color="#2563eb" style={{ height: 6, borderRadius: 4 }} />
+              </View>
+            </View>
+          </TouchableOpacity>
+        )}
+      />
     </View>
   );
 };

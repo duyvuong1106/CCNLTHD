@@ -1,39 +1,31 @@
-import { View } from "react-native";
-import TextCustom from "../TextCustom";
-import { FlatList } from "react-native";
+import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import { Icon } from "react-native-paper";
-import CourseView from "../CourseComponents/CourseView";
-
 import { useNavigation } from "@react-navigation/native";
+import CourseView from "../CourseComponents/CourseView"; // Đảm bảo import đúng CourseView mới
 
-export const HomeCourseList = ({
-  data,
-  text,
-  icon,
-  textClass = {},
-  iconColor,
-  theme,
-}) => {
-  const nav = useNavigation();
+export const HomeCourseList = ({ data, text, icon, iconColor, theme }) => {
+  const navigation = useNavigation();
 
   return (
-    <View>
-      <View className="pl-5 flex-row gap-3 items-center">
-        <Icon
-          source={icon}
-          size={28}
-          color={iconColor ? iconColor : theme.colors.slate[600]}
-        />
-        <TextCustom.TextSection style={textClass} text={text} />
+    <View className="mt-6">
+      <View className="flex-row justify-between items-center px-4 mb-3">
+        <View className="flex-row items-center">
+            {icon && <Icon source={icon} size={20} color={iconColor || theme.colors.primary} />}
+            <Text className="font-bold text-lg text-slate-800 ml-2">{text}</Text>
+        </View>
+        <TouchableOpacity onPress={() => navigation.navigate("Search")}>
+            <Text className="text-blue-600 font-bold text-xs">Xem tất cả</Text>
+        </TouchableOpacity>
       </View>
+      
       <FlatList
-        data={data}
         horizontal
+        data={data}
         showsHorizontalScrollIndicator={false}
-        className="gap-3 "
-        keyExtractor={(item) => item.id}
+        contentContainerStyle={{ paddingLeft: 16, paddingRight: 8 }}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <CourseView theme={theme} navigation={nav} item={item} />
+           <CourseView item={item} navigation={navigation} theme={theme} />
         )}
       />
     </View>

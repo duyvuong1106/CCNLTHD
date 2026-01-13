@@ -1,179 +1,83 @@
-import { View, ScrollView, Text, Pressable, Image } from "react-native";
-import { Avatar, Button, List } from "react-native-paper";
-import ListItem from "../../components/ListItem";
+import { View, Text, Image, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { useContext } from "react";
+import { Avatar, List, Divider } from "react-native-paper";
 import { MyUserContext } from "../../utils/contexts/MyContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import HeaderCustom from "../../components/Header";
 import { MyColorContext } from "../../utils/contexts/MyColorContext";
 
 const Account = ({ navigation }) => {
-  const jsonAccountData = require("../../mock/data.config.account.json");
   const [user, dispatch] = useContext(MyUserContext);
   const { theme } = useContext(MyColorContext);
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem("token");
-      dispatch({ type: "logout" });
-    } catch (error) {
-      console.error("Lỗi đăng xuất:", error);
-    }
+
+  const handleLogout = () => {
+    Alert.alert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất?", [
+      { text: "Hủy", style: "cancel" },
+      { 
+        text: "Đồng ý", 
+        onPress: () => {
+           dispatch({ type: "logout" });
+           // Chuyển về màn hình Login (Reset lại stack)
+           // Lưu ý: Nếu App.js check user null -> tự render Login thì không cần dòng dưới
+        } 
+      }
+    ]);
   };
-  console.log("user ne", user);
+
+  if (!user) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <Text className="mb-4 text-slate-500">Bạn chưa đăng nhập</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("Login")} className="bg-blue-600 px-6 py-2 rounded-full">
+            <Text className="text-white font-bold">Đăng nhập ngay</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
-    <ScrollView
-      className="flex-1 pt-10"
-      style={{
-        backgroundColor: theme.colors.gray[100],
-      }}
-      contentContainerStyle={{
-        paddingBottom: 80,
-      }}
-    >
-      <HeaderCustom text="" />
-      {user && (
-        <View>
-          <View
-            style={{
-              backgroundColor: theme.colors.gray[100],
-            }}
-            className=" p-5 flex flex-row items-center justify-around border-b "
-          >
-            <View>
-              <Avatar.Image
-                size={80}
-                source={{ uri: user.avatar }}
-                style={{
-                  backgroundColor: theme.colors.slate[200],
-                  borderColor: theme.colors.slate[200],
-                }}
-              />
-            </View>
-            <View>
-              <Text
-                className="text-xl font-bold mt-3"
-                style={{
-                  color: theme.colors.slate[800],
-                }}
-              >
-                {user.first_name + " " + user.last_name}
-              </Text>
-              <Text
-                style={{
-                  color: theme.colors.slate[500],
-                }}
-              >
-                {user.username}
-              </Text>
-              <Pressable
-                onPress={() =>
-                  navigation.navigate("AccountDetailedScreen", {
-                    isEditParam: true,
-                  })
-                }
-                className="mt-3 p-2 rounded-xl shadow-sm active:opacity-90"
-                style={{
-                  backgroundColor: theme.colors.slate[600],
-                }}
-              >
-                <Text
-                  className="font-bold text-xs text-center"
-                  style={{
-                    color: theme.colors.gray[100],
-                  }}
-                >
-                  Chỉnh sửa hồ sơ
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-          <View>
-            <ListItem
-              mapJson={jsonAccountData.personal}
-              navigation={navigation}
-              header="cá nhân"
-              theme={theme}
-            />
-          </View>
-          <View>
-            <ListItem
-              mapJson={jsonAccountData.system}
-              navigation={navigation}
-              header="hệ thống"
-              theme={theme}
-            />
-          </View>
+    <ScrollView className="flex-1 bg-slate-50">
+      {/* Header Profile */}
+      <View className="bg-white p-6 items-center border-b border-slate-200 mb-4">
+        <Avatar.Image size={100} source={{ uri: user.avatar || "https://i.pravatar.cc/300" }} />
+        <Text className="text-2xl font-bold mt-4 text-slate-800">{user.last_name} {user.first_name}</Text>
+        <Text className="text-slate-500">@{user.username}</Text>
+        <Text className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold mt-2 uppercase">{user.role}</Text>
+      </View>
 
-          <View className="p-4 mt-2 mb-3">
-            <Button
-              mode="outlined"
-              textColor={theme.colors.danger}
-              className="rounded-xl  "
-              style={{
-                backgroundColor: theme.colors.gray[100],
-                borderColor: theme.colors.danger,
-              }}
-              contentStyle={{
-                paddingVertical: 4,
-                backgroundColor: theme.colors.gray[100],
-              }}
-              icon="logout"
-              onPress={handleLogout}
-            >
-              Đăng xuất
-            </Button>
-          </View>
-          <Text
-            className="text-center text-xs"
-            style={{
-              color: theme.colors.slate[400],
-            }}
-          >
-            Phiên bản 1.0.0
-          </Text>
-        </View>
-      )}
-      {!user && (
-        <View>
-          <View>
-            <ListItem
-              mapJson={jsonAccountData.system}
-              navigation={navigation}
-              header="hệ thống"
-              theme={theme}
-            />
-          </View>
-          <View className="p-4 mt-2 mb-8">
-            <Pressable
-              onPress={() => navigation.navigate("Login")}
-              className="flex-row items-center justify-center p-3 border  rounded-xl shadow-sm mt-4"
-              style={{
-                backgroundColor: theme.colors.gray[100],
-                borderColor: theme.colors.slate[200],
-              }}
-            >
-              <List.Icon icon="login" color={theme.colors.slate[500]} />
+      {/* Menu Options */}
+      <View className="bg-white px-2">
+        <List.Item
+          title="Thông tin cá nhân"
+          description="Chỉnh sửa hồ sơ, avatar"
+          left={(props) => <List.Icon {...props} icon="account-edit" color={theme.colors.primary} />}
+          onPress={() => navigation.navigate("AccountDetailed")}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+        />
+        <Divider />
+        <List.Item
+          title="Khóa học của tôi"
+          description="Tiến độ học tập"
+          left={(props) => <List.Icon {...props} icon="school" color={theme.colors.primary} />}
+          onPress={() => navigation.navigate("UserLearning")}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+        />
+        <Divider />
+        <List.Item
+          title="Cài đặt"
+          description="Giao diện, ngôn ngữ"
+          left={(props) => <List.Icon {...props} icon="cog" color={theme.colors.primary} />}
+          onPress={() => navigation.navigate("Setting")}
+          right={(props) => <List.Icon {...props} icon="chevron-right" />}
+        />
+      </View>
 
-              <Text
-                className="font-bold  ml-1"
-                style={{
-                  color: theme.colors.slate[500],
-                }}
-              >
-                Đăng nhập
-              </Text>
-            </Pressable>
-          </View>
-          <Text
-            className="text-center  text-xs mt-4"
-            style={{
-              color: theme.colors.slate[400],
-            }}
-          >
-            Phiên bản 1.0.0
-          </Text>
-        </View>
-      )}
+      <View className="mt-6 px-4">
+        <TouchableOpacity onPress={handleLogout} className="bg-red-50 p-4 rounded-xl flex-row justify-center items-center border border-red-100">
+             <List.Icon icon="logout" color="#ef4444" style={{margin:0, padding:0, height:24, width:24}} />
+             <Text className="text-red-500 font-bold ml-2">Đăng xuất</Text>
+        </TouchableOpacity>
+      </View>
+      
+      <View className="h-10"/>
     </ScrollView>
   );
 };

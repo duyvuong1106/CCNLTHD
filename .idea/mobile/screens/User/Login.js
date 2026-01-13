@@ -1,201 +1,99 @@
-import * as WebBrowser from "expo-web-browser";
-WebBrowser.maybeCompleteAuthSession();
-import { Pressable, View } from "react-native";
-import {
-  ActivityIndicator,
-  HelperText,
-  IconButton,
-  TextInput,
-} from "react-native-paper";
+import { View, Text, TouchableOpacity, Image, Alert } from "react-native";
+import { useState, useContext } from "react";
+import { TextInput, ActivityIndicator, HelperText, Button } from "react-native-paper";
 import { MyUserContext } from "../../utils/contexts/MyContext";
-import TextCustom from "../../components/TextCustom";
-import AuthLayout from "../../components/AuthLayout";
-import * as Linking from "expo-linking";
-import { useState } from "react";
-import { authApi } from "../../api/authApi";
-import axiosClient from "../../api/axiosClient";
-import { endpoints } from "../../utils/Apis";
-import { useNavigation } from "@react-navigation/native";
-import { useContext } from "react";
-import * as AuthSession from "expo-auth-session";
-import { MyColorContext } from "../../utils/contexts/MyColorContext";
+import { MockApi } from "../../services/MockDataService"; // Dùng Mock Service
 
-const Login = () => {
-  const jsonData = require("../../mock/data.config.register.json");
-  const jsonStyle = require("../../mock/data.styles.json");
-  const { theme } = useContext(MyColorContext);
-  const fieldsRender = jsonData.info.filter(
-    (item) => item.field === "username" || item.field === "password",
-  );
-  const [user, setUser] = useState({});
-  const [err, setErr] = useState(false);
+const Login = ({ navigation }) => {
+  const [username, setUsername] = useState("student_test");
+  const [password, setPassword] = useState("123456");
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPass, setShowConfirmPass] = useState(false);
-  const navigation = useNavigation();
+  const [error, setError] = useState(false);
+  const [secureTextEntry, setSecureTextEntry] = useState(true);
+  
   const [, dispatch] = useContext(MyUserContext);
 
-  const validate = () => {
-    if (!user.password || !user.username) {
-      setErr(true);
-      return false;
+  const handleLogin = async () => {
+    if (!username || !password) {
+      setError(true);
+      return;
     }
-    setErr(false);
-    return true;
-  };
-
-  const login = async () => {
-    if (validate() === true) {
-      setLoading(true);
-      try {
-        await authApi.login(user);
-        let userRes = await axiosClient.get(endpoints["current_user"]);
-        dispatch({
-          type: "login",
-          payload: userRes.data,
-        });
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "Home" }],
-        });
-      } catch (ex) {
-        console.error("Login ", ex.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-  const loginGoogle = async () => {
+    
+    setLoading(true);
+    setError(false);
+    
     try {
-      // Redirect URI về app
-      const redirectUri = AuthSession.makeRedirectUri({
-        scheme: "oucourse",
-        path: "oauthredirect",
+      // Gọi Mock API
+      const res = await MockApi.login(username, password);
+      
+      // Lưu user vào Context (Global State)
+      dispatch({
+        type: "login",
+        payload: res.data.user,
       });
-      console.log("redirectUri =", redirectUri);
-      const params = new URLSearchParams();
-      params.append("auth_type", "google");
-      params.append("redirect_uri", redirectUri);
 
-      const res = await axiosClient.get(endpoints.googleAuth, { params });
-
-      const authUrl = res.data?.auth_url;
-      console.log(authUrl);
-      if (!authUrl) throw new Error("Missing auth_url from backend");
-
-      // Mở phiên đăcng nhập + chờ redirect về app
-      const result = await WebBrowser.openAuthSessionAsync(
-        authUrl,
-        redirectUri,
-      );
-      if (result.type !== "success" || !result.url) return;
-
-      // Parse callback: oucourse://... ?code=...&state=...
-      const parsed = Linking.parse(result.url);
-      const code = parsed.queryParams?.code;
-      const state = parsed.queryParams?.state;
-
-      if (!code || !state) throw new Error("Missing code/state in callback");
-
-      // Gọi backend đổi code -> token/session
-      console.log("Gọi loginRes");
-      const loginRes = await axiosClient.get(endpoints.googleCallback, {
-        code,
-        state,
-        redirect_uri: redirectUri,
-      });
-    } catch (ex) {
-      console.error("Lỗi Google Auth:", ex);
+      // Điều hướng về Home (Reset stack để không back lại login được)
+      navigation.reset({ index: 0, routes: [{ name: "Home" }] });
+      
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Lỗi", "Tên đăng nhập hoặc mật khẩu không đúng");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <AuthLayout title="ĐĂNG NHẬP NGƯỜI DÙNG">
-      <HelperText type="error" visible={err}>
-        Mật khẩu KHÔNG khớp!
-      </HelperText>
-      {fieldsRender.map((item) => {
-        const isPasswordField =
-          item.field === "password" || item.field === "confirm";
-
-        const isVisible =
-          item.field === "password" ? showPassword : showConfirmPass;
-        const toggleVisibility = () => {
-          if (item.field === "password") setShowPassword(!showPassword);
-          else setShowConfirmPass(!showConfirmPass);
-        };
-        return (
-          <TextInput
-            key={item.field}
-            value={user[item.field]}
-            onChangeText={(t) => setUser({ ...user, [item.field]: t })}
-            label={item.title}
-            secureTextEntry={isPasswordField ? !isVisible : false}
-            activeOutlineColor={theme.colors.slate[500]}
-            right={
-              isPasswordField ? (
-                <TextInput.Icon
-                  icon={isVisible ? "eye-off" : "eye"}
-                  onPress={toggleVisibility}
-                />
-              ) : (
-                <TextInput.Icon icon={item.icon} />
-              )
-            }
-            mode="outlined"
-          />
-        );
-      })}
-      <View className="flex mb-2 flex-row-reverse gap-5 mt-3">
-        <Pressable onPress={login} className={jsonStyle["pressable-focus"]}>
-          {loading ? (
-            <ActivityIndicator
-              animating={true}
-              color={theme.colors.gray[100]}
-              size="small"
-            />
-          ) : (
-            <TextCustom.TextNoFocus text="ĐĂNG NHẬP" />
-          )}
-        </Pressable>
-
-        <Pressable
-          onPress={() => navigation.navigate("Register")}
-          className={jsonStyle["pressable-no-focus"]}
-        >
-          <TextCustom.TextFocus text="ĐĂNG KÝ" style={{ fontSize: 12 }} />
-        </Pressable>
-      </View>
-      <View className="flex-row items-center my-6">
-        <View
-          className="flex-1 h-[1px]"
-          style={{
-            backgroundColor: theme.colors.slate[200],
-          }}
+    <View className="flex-1 bg-white justify-center px-6">
+      <View className="items-center mb-10">
+        <Image 
+            source={require("../../assets/logo_OUCourse.png")} 
+            style={{ width: 100, height: 100, resizeMode: 'contain' }}
         />
-        <TextCustom.TextFocus
-          text=" Hoặc đăng nhập bằng "
-          style={{ fontSize: 12 }}
-        />
-        <View
-          className="flex-1 h-[1px]"
-          style={{
-            backgroundColor: theme.colors.slate[200],
-          }}
-        />
+        <Text className="text-3xl font-bold text-blue-600 mt-2">OU Course</Text>
+        <Text className="text-slate-400 text-base">Học mọi lúc, mọi nơi</Text>
       </View>
 
-      <View className="flex-row justify-center gap-4">
-        <IconButton
-          icon="google"
+      <View className="space-y-4">
+        <TextInput
+          label="Tên đăng nhập"
           mode="outlined"
-          iconColor="#DB4437"
-          size={30}
-          onPress={loginGoogle}
-          style={{ borderColor: "#DB4437" }}
+          value={username}
+          onChangeText={setUsername}
+          left={<TextInput.Icon icon="account" />}
         />
+        
+        <TextInput
+          label="Mật khẩu"
+          mode="outlined"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry={secureTextEntry}
+          left={<TextInput.Icon icon="lock" />}
+          right={<TextInput.Icon icon={secureTextEntry ? "eye" : "eye-off"} onPress={() => setSecureTextEntry(!secureTextEntry)} />}
+        />
+        {error && <HelperText type="error">Vui lòng nhập đầy đủ thông tin</HelperText>}
       </View>
-    </AuthLayout>
+
+      <TouchableOpacity
+        onPress={handleLogin}
+        disabled={loading}
+        className="bg-blue-600 p-4 rounded-xl mt-6 items-center shadow-lg shadow-blue-200"
+      >
+        {loading ? (
+            <ActivityIndicator color="white" />
+        ) : (
+            <Text className="text-white font-bold text-lg">ĐĂNG NHẬP</Text>
+        )}
+      </TouchableOpacity>
+
+      <View className="flex-row justify-center mt-6">
+        <Text className="text-slate-500">Chưa có tài khoản? </Text>
+        <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+          <Text className="text-blue-600 font-bold">Đăng ký ngay</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 
