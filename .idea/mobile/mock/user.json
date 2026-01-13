@@ -1,0 +1,12 @@
+{
+  "content": {
+    "id": 99,
+    "first_name": "Vũ",
+    "last_name": "Hoàng",
+    "username": "student_test",
+    "avatar": "https://i.pravatar.cc/300?img=12",
+    "email": "student@ou.edu.vn",
+    "role": "Student",
+    "is_active": true
+  }
+}

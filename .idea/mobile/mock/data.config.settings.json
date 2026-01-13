@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "title": "Tài khoản",
+    "type": "header"
+  },
+  {
+    "id": 2,
+    "title": "Hồ sơ cá nhân",
+    "sub_title": "Chỉnh sửa tên, ảnh đại diện",
+    "icon": "account-circle-outline",
+    "nav": "AccountDetailed",
+    "type": "item"
+  },
+  {
+    "id": 3,
+    "title": "Khóa học của tôi",
+    "sub_title": "Xem tiến độ học tập",
+    "icon": "school-outline",
+    "nav": "UserLearning",
+    "type": "item"
+  },
+  {
+    "id": 4,
+    "title": "Ứng dụng",
+    "type": "header"
+  },
+  {
+    "id": 5,
+    "title": "Giao diện",
+    "sub_title": "Sáng / Tối",
+    "icon": "theme-light-dark",
+    "nav": "Appearance",
+    "type": "item"
+  },
+  {
+    "id": 6,
+    "title": "Trợ giúp & Phản hồi",
+    "sub_title": "Câu hỏi thường gặp",
+    "icon": "help-circle-outline",
+    "nav": "HelpAndFeedback",
+    "type": "item"
+  },
+  {
+    "id": 7,
+    "title": "Điều khoản sử dụng",
+    "sub_title": "Quy định chung",
+    "icon": "file-document-outline",
+    "nav": "Terms",
+    "type": "item"
+  }
+]

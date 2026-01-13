@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "question": "Làm sao để đăng ký khóa học?",
+    "answer": "Bạn có thể tìm kiếm khóa học ở trang chủ hoặc trang tìm kiếm, sau đó bấm vào nút 'Vào học ngay' để đăng ký."
+  },
+  {
+    "id": 2,
+    "question": "Tôi có thể học offline không?",
+    "answer": "Hiện tại ứng dụng yêu cầu kết nối internet để tải video bài giảng."
+  },
+  {
+    "id": 3,
+    "question": "Làm sao để lấy lại mật khẩu?",
+    "answer": "Vui lòng liên hệ với admin qua email admin@oucourse.edu.vn để được hỗ trợ cấp lại mật khẩu."
+  },
+  {
+    "id": 4,
+    "question": "Ứng dụng có hỗ trợ Dark Mode không?",
+    "answer": "Có. Bạn vào Tab Tài khoản -> Cài đặt -> Giao diện để chuyển đổi."
+  }
+]
